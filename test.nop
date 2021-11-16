@@ -1,0 +1,3 @@
+func puts() {
+  eval("puts(\"test\")")
+}

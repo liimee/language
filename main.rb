@@ -3,39 +3,56 @@
 # std.print("HEY")
 # }
 
-$funcs = []
-$imports = []
+require './run'
+
+$funcs = {}
 
 def parseImports(str)
   ar = str.strip.scan(/import \"([^\"]*)\"/)
-  $imports = ar
+  return ar
 end
 
 def parseFunctions(str)
-  ar = str.strip.split(/func (\w*)\(([^\)]*)\) \-\> (\w*) \{([^\}]*)\}/m)
-  ar.map! { |item| item.strip }
-  ar.each_slice(4) do |a, b, c, d|
-    $funcs.push(Function.new(a, b, c, d))
+  ar = str.strip.scan(/func (\w*)\(([^\)]*)\) \{([^\}]*)\}/m)
+  ar.map! { |item| item.map! { |a| a.strip } }
+  ar.each do |a|
+    $funcs[a[0]] = Function.new(a[1], a[2])
   end
 end
 
+def parseFuncCalls(str)
+  ar = str.strip.scan(/(\w*)\(([^\)]*)\)/)
+  return ar
+end
+
 class Function
-  def initialize(a, b, c, d)
-    @name, @args, @returns, @func = a, b, c, d
+  def initialize(a, b)
+    @args, @func = a, b
+  end
+
+  def run()
+    e = parseFuncCalls(@func)
+    e.each { |a|
+      $funcs[a[0]].run()
+    }
   end
 end
 
 def main(str)
   imp = parseImports(str)
+  imp = import(imp)
+  imp.each do |a|
+    parseFunctions a
+  end
   fun = parseFunctions(str)
-  puts $imports
 end
 
 main('
-  import "std"
-  import "ddd"
+  import "test.nop"
 
-  func main() -> null {
-    std.puts("hey")
+  func main() {
+    puts()
   }
 ')
+
+$funcs["main"].run
