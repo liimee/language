@@ -25,6 +25,22 @@ def parseFuncCalls(str)
   return ar
 end
 
+def resolveArgs(str, args, g)
+  e = args.strip.split(/\,/)
+  f = {}
+  #puts args
+  e.each_with_index do |a, b|
+    f["@"+a] = g[b]
+  end
+  return f
+  #puts f
+end
+
+def parseThing(str)
+  ar = str.strip.scan(/\"(?!\\)([^\"(?!\\)]*)\"(?!\\)/)
+  return ar[0]
+end
+
 class Function
   def initialize(a, b)
     @args, @func = a, b
@@ -33,7 +49,13 @@ class Function
   def run()
     e = parseFuncCalls(@func)
     e.each { |a|
-      $funcs[a[0]].run()
+      dd = a[1].split(/("[^"]*")|\,/)
+      s = resolveArgs(@func, @args, dd)
+      if a[0] == 'eval'
+        eval(a[1][1...-1])
+      else
+        $funcs[a[0]].run()
+      end
     }
   end
 end
@@ -54,5 +76,4 @@ main('
     puts()
   }
 ')
-
 $funcs["main"].run
