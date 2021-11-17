@@ -1,6 +1,8 @@
 require './run'
 
 $funcs = {}
+$vars = {}
+$s = 0
 
 def parseImports(str)
   ar = str.strip.scan(/import \"([^\"]*)\"/)
@@ -16,24 +18,23 @@ def parseFunctions(str)
 end
 
 def parseFuncCalls(str)
-  ar = str.strip.scan(/(?!\\)(\w*)\(([^\)]*)\)/)
+  ar = str.strip.scan(/(^|[^\\])(\w*)\(([^\)]*)\)/)
   return ar
 end
 
-def resolveArgs(str, args, g)
+def resolveArgs(str, args, g, l)
   e = args.strip.split(/\,/)
-  f = {}
-  #puts args
   e.each_with_index do |a, b|
-    f["@"+a] = g[b]
+    $vars[a] = {
+      l: l,
+      val: g[b]
+    }
   end
-  return f
-  #puts f
 end
 
 def parseThing(str)
-  ar = str.strip.scan(/\"(?!\\)([^\"(?!\\)]*)\"(?!\\)/)
-  return ar[0]
+  ar = str.strip.scan(/\$\(\w\)/)
+  puts ar
 end
 
 class Function
@@ -42,16 +43,28 @@ class Function
   end
 
   def run()
+    $s+=1
+    l = $s
     e = parseFuncCalls(@func)
-    e.each { |a|
-      dd = a[1].split(/("[^"]*")|\,/)
-      s = resolveArgs(@func, @args, dd)
-      if a[0] == 'eval'
-        eval(a[1][1...-1])
+    e.each_with_index { |a, s|
+      dd = a[2].split(/\,/)
+      resolveArgs(@func, @args, dd, l)
+      dd.each do |x|
+        parseThing(x)
+      end
+      case a[1]
+      when 'eval'
+        eval(a[2][1...-1].gsub(/(^|[^\\])\\/, ""))
+      when 'var'
+        $vars[dd[0]] = {
+          val: dd[1],
+          l: l
+        }
       else
-        $funcs[a[0]].run()
+        $funcs[a[1]].run()
       end
     }
+    $vars.reject! do |_, s| s[:l] == l end
   end
 end
 
@@ -68,7 +81,7 @@ main('
   import "test.nop"
 
   func main() {
-    puts()
+    puts("a")
   }
 ')
 
