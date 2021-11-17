@@ -1,8 +1,3 @@
-# import "std.nop"
-# func main() -> null {
-# std.print("HEY")
-# }
-
 require './run'
 
 $funcs = {}
@@ -21,7 +16,7 @@ def parseFunctions(str)
 end
 
 def parseFuncCalls(str)
-  ar = str.strip.scan(/(\w*)\(([^\)]*)\)/)
+  ar = str.strip.scan(/(?!\\)(\w*)\(([^\)]*)\)/)
   return ar
 end
 
@@ -76,4 +71,5 @@ main('
     puts()
   }
 ')
+
 $funcs["main"].run
