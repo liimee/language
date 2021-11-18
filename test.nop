@@ -1,5 +1,3 @@
 func puts(s) {
   eval("puts \"$s \"")
-  eval("puts \"dcjier \"")
-
 }

@@ -37,7 +37,8 @@ def parseThing(str)
   ar.each do |f|
     str.gsub!(f[0], $vars[f[0][1..-1]][:val])
   end
-  str.gsub!(/(^|[^\\])\\/, "")
+  #          (^|[^\\])
+  str.gsub!(/\\/, "")
   return str
 end
 
@@ -52,7 +53,13 @@ class Function
     s = args.split(/\,/)
     resolveArgs(@args, s, l)
     ss = parseThing(@func)
-    puts ss
+    parseFuncCalls(ss).each do |s|
+      if s[1] == 'eval'
+        eval(s[2][1...-1])
+      else
+        $funcs[s[1]].run(s[2][1...-1])
+      end
+    end
 =begin
     e = parseFuncCalls(@func)
     e.each_with_index { |a, s|
