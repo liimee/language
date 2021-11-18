@@ -52,7 +52,8 @@ class Function
   def run(args)
     $s+=1
     l = $s
-    s = args.split(/\,/)
+    s = args.split(/(.*)[|[^\\]]\,(.*)/)
+    s.shift
     resolveArgs(@args, s, l)
     ss = parseThing(@func, l)
     parseFuncCalls(ss).each do |s|
@@ -79,9 +80,9 @@ main('
   import "test.nop"
 
   func main(aaa,bbb) {
-    puts("$aaa: $bbb")
-    puts("test")
+    puts("$aaa: $bbb", d)
+    puts("test", d)
   }
 ')
 
-$funcs["main"].run('aaaaaaaaaaaaa, bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb')
+$funcs["main"].run('aaaaaaaaaaaaa\,bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb,ccc')
