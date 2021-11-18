@@ -60,6 +60,7 @@ class Function
         $funcs[s[1]].run(s[2][1...-1])
       end
     end
+    $vars.reject! do |_, s| s[:l] == l end
 =begin
     e = parseFuncCalls(@func)
     e.each_with_index { |a, s|
@@ -100,9 +101,9 @@ end
 main('
   import "test.nop"
 
-  func main(aaa) {
-    puts("$aaa")
+  func main(aaa,bbb) {
+    puts("$aaa: $bbb")
   }
 ')
 
-$funcs["main"].run('aaaaaaaaaaaaa')
+$funcs["main"].run('aaaaaaaaaaaaa, bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb')
