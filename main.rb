@@ -22,7 +22,7 @@ def parseFuncCalls(str)
   return ar
 end
 
-def resolveArgs(str, args, g, l)
+def resolveArgs(args, g, l)
   e = args.strip.split(/\,/)
   e.each_with_index do |a, b|
     $vars[a] = {
@@ -33,8 +33,12 @@ def resolveArgs(str, args, g, l)
 end
 
 def parseThing(str)
-  ar = str.strip.scan(/\$\(\w\)/)
-  puts ar
+  ar = str.strip.scan(/(\$\w*)/)
+  ar.each do |f|
+    str.gsub!(f[0], $vars[f[0][1..-1]][:val])
+  end
+  str.gsub!(/(^|[^\\])\\/, "")
+  return str
 end
 
 class Function
@@ -42,19 +46,26 @@ class Function
     @args, @func = a, b
   end
 
-  def run()
+  def run(args)
     $s+=1
     l = $s
+    s = args.split(/\,/)
+    resolveArgs(@args, s, l)
+    ss = parseThing(@func)
+    puts ss
+=begin
     e = parseFuncCalls(@func)
     e.each_with_index { |a, s|
       dd = a[2].split(/\,/)
       resolveArgs(@func, @args, dd, l)
+      ss = [];
       dd.each do |x|
-        parseThing(x)
+        ss.push(parseThing(x))
       end
       case a[1]
       when 'eval'
-        eval(a[2][1...-1].gsub(/(^|[^\\])\\/, ""))
+        eval(ss.join('\n')[1...-1])
+        #eval(a[2][1...-1].gsub(/(^|[^\\])\\/, ""))
       when 'var'
         $vars[dd[0]] = {
           val: dd[1],
@@ -63,8 +74,10 @@ class Function
       else
         $funcs[a[1]].run()
       end
+      puts $vars
     }
     $vars.reject! do |_, s| s[:l] == l end
+=end
   end
 end
 
@@ -80,9 +93,9 @@ end
 main('
   import "test.nop"
 
-  func main() {
-    puts("a")
+  func main(aaa) {
+    puts("$aaa")
   }
 ')
 
-$funcs["main"].run
+$funcs["main"].run('aaaaaaaaaaaaa')
