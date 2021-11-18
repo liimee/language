@@ -32,10 +32,12 @@ def resolveArgs(args, g, l)
   end
 end
 
-def parseThing(str)
+def parseThing(str, l)
   ar = str.strip.scan(/(\$\w*)/)
   ar.each do |f|
-    str.gsub!(f[0], $vars[f[0][1..-1]][:val])
+    if $vars[f[0][1..-1]][:l] <= l
+      str.gsub!(f[0], $vars[f[0][1..-1]][:val])
+    end
   end
   #          (^|[^\\])
   str.gsub!(/\\/, "")
@@ -52,7 +54,7 @@ class Function
     l = $s
     s = args.split(/\,/)
     resolveArgs(@args, s, l)
-    ss = parseThing(@func)
+    ss = parseThing(@func, l)
     parseFuncCalls(ss).each do |s|
       if s[1] == 'eval'
         eval(s[2][1...-1])
@@ -61,31 +63,6 @@ class Function
       end
     end
     $vars.reject! do |_, s| s[:l] == l end
-=begin
-    e = parseFuncCalls(@func)
-    e.each_with_index { |a, s|
-      dd = a[2].split(/\,/)
-      resolveArgs(@func, @args, dd, l)
-      ss = [];
-      dd.each do |x|
-        ss.push(parseThing(x))
-      end
-      case a[1]
-      when 'eval'
-        eval(ss.join('\n')[1...-1])
-        #eval(a[2][1...-1].gsub(/(^|[^\\])\\/, ""))
-      when 'var'
-        $vars[dd[0]] = {
-          val: dd[1],
-          l: l
-        }
-      else
-        $funcs[a[1]].run()
-      end
-      puts $vars
-    }
-    $vars.reject! do |_, s| s[:l] == l end
-=end
   end
 end
 
@@ -103,6 +80,7 @@ main('
 
   func main(aaa,bbb) {
     puts("$aaa: $bbb")
+    puts("test")
   }
 ')
 
